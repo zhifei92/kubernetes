@@ -114,8 +114,8 @@ func TestUserNsManagerAllocate(t *testing.T) {
 	err = m.record(logger, "two", allocated2+1, length2)
 	assert.Error(t, err)
 
-	m.Release("one")
-	m.Release("two")
+	m.Release(logger, "one")
+	m.Release(logger, "two")
 	assert.False(t, m.isSet(allocated), "m.isSet(%d)", allocated)
 	assert.False(t, m.isSet(allocated2), "m.nsSet(%d)", allocated2)
 
@@ -131,12 +131,12 @@ func TestUserNsManagerAllocate(t *testing.T) {
 	}
 	for i, v := range allocs {
 		assert.True(t, m.isSet(v), "m.isSet(%d) should be true", v)
-		m.Release(types.UID(fmt.Sprintf("%d", i)))
+		m.Release(logger, types.UID(fmt.Sprintf("%d", i)))
 		assert.False(t, m.isSet(v), "m.isSet(%d) should be false", v)
 
 		err = m.record(logger, types.UID(fmt.Sprintf("%d", i)), v, userNsLength)
 		assert.NoError(t, err)
-		m.Release(types.UID(fmt.Sprintf("%d", i)))
+		m.Release(logger, types.UID(fmt.Sprintf("%d", i)))
 		assert.False(t, m.isSet(v), "m.isSet(%d) should be false", v)
 	}
 }

@@ -47,7 +47,7 @@ func TestReleaseDisabled(t *testing.T) {
 	m, err := MakeUserNsManager(logger, testUserNsPodsManager)
 	require.NoError(t, err)
 
-	m.Release("some-pod")
+	m.Release(logger, "some-pod")
 }
 
 func TestGetOrCreateUserNamespaceMappingsDisabled(t *testing.T) {

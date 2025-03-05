@@ -263,7 +263,7 @@ func (m *UsernsManager) record(logger klog.Logger, pod types.UID, from, length u
 }
 
 // Release releases the user namespace allocated to the specified pod.
-func (m *UsernsManager) Release(podUID types.UID) {
+func (m *UsernsManager) Release(logger klog.Logger, podUID types.UID) {
 	if !utilfeature.DefaultFeatureGate.Enabled(features.UserNamespacesSupport) {
 		return
 	}
@@ -271,7 +271,7 @@ func (m *UsernsManager) Release(podUID types.UID) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
-	m.releaseWithLock(klog.TODO(), podUID)
+	m.releaseWithLock(logger, podUID)
 }
 
 // podAllocated returns true if the pod is allocated, false otherwise.
