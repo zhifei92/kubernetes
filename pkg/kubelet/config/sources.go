@@ -18,20 +18,21 @@ limitations under the License.
 package config
 
 import (
+	"context"
 	"sync"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 // SourcesReadyFn is function that returns true if the specified sources have been seen.
-type SourcesReadyFn func(sourcesSeen sets.Set[string]) bool
+type SourcesReadyFn func(ctx context.Context, sourcesSeen sets.Set[string]) bool
 
 // SourcesReady tracks the set of configured sources seen by the kubelet.
 type SourcesReady interface {
 	// AddSource adds the specified source to the set of sources managed.
 	AddSource(source string)
 	// AllReady returns true if the currently configured sources have all been seen.
-	AllReady() bool
+	AllReady(ctx context.Context) bool
 }
 
 // NewSourcesReady returns a SourcesReady with the specified function.
@@ -60,8 +61,8 @@ func (s *sourcesImpl) AddSource(source string) {
 }
 
 // AllReady returns true if each configured source is ready.
-func (s *sourcesImpl) AllReady() bool {
+func (s *sourcesImpl) AllReady(ctx context.Context) bool {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	return s.sourcesReadyFn(s.sourcesSeen)
+	return s.sourcesReadyFn(ctx, s.sourcesSeen)
 }

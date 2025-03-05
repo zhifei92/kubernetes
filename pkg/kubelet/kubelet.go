@@ -336,22 +336,22 @@ func makePodSourceConfig(kubeCfg *kubeletconfiginternal.KubeletConfiguration, ku
 
 	// TODO:  it needs to be replaced by a proper context in the future
 	ctx := context.TODO()
-
+	logger := klog.FromContext(ctx)
 	// define file config source
 	if kubeCfg.StaticPodPath != "" {
 		klog.InfoS("Adding static pod path", "path", kubeCfg.StaticPodPath)
-		config.NewSourceFile(kubeCfg.StaticPodPath, nodeName, kubeCfg.FileCheckFrequency.Duration, cfg.Channel(ctx, kubetypes.FileSource))
+		config.NewSourceFile(logger, kubeCfg.StaticPodPath, nodeName, kubeCfg.FileCheckFrequency.Duration, cfg.Channel(ctx, kubetypes.FileSource))
 	}
 
 	// define url config source
 	if kubeCfg.StaticPodURL != "" {
 		klog.InfoS("Adding pod URL with HTTP header", "URL", kubeCfg.StaticPodURL, "header", manifestURLHeader)
-		config.NewSourceURL(kubeCfg.StaticPodURL, manifestURLHeader, nodeName, kubeCfg.HTTPCheckFrequency.Duration, cfg.Channel(ctx, kubetypes.HTTPSource))
+		config.NewSourceURL(logger, kubeCfg.StaticPodURL, manifestURLHeader, nodeName, kubeCfg.HTTPCheckFrequency.Duration, cfg.Channel(ctx, kubetypes.HTTPSource))
 	}
 
 	if kubeDeps.KubeClient != nil {
 		klog.InfoS("Adding apiserver pod source")
-		config.NewSourceApiserver(kubeDeps.KubeClient, nodeName, nodeHasSynced, cfg.Channel(ctx, kubetypes.ApiserverSource))
+		config.NewSourceApiserver(logger, kubeDeps.KubeClient, nodeName, nodeHasSynced, cfg.Channel(ctx, kubetypes.ApiserverSource))
 	}
 	return cfg, nil
 }
@@ -2313,7 +2313,9 @@ func (kl *Kubelet) deletePod(pod *v1.Pod) error {
 	if pod == nil {
 		return fmt.Errorf("deletePod does not allow nil pod")
 	}
-	if !kl.sourcesReady.AllReady() {
+	// Use context.TODO() because we currently do not have a proper context to pass in.
+	// Replace this with an appropriate context when refactoring this function to accept a context parameter.
+	if !kl.sourcesReady.AllReady(context.TODO()) {
 		// If the sources aren't ready, skip deletion, as we may accidentally delete pods
 		// for sources that haven't reported yet.
 		return fmt.Errorf("skipping delete because sources aren't ready yet")
@@ -2563,7 +2565,7 @@ func (kl *Kubelet) syncLoopIteration(ctx context.Context, configCh <-chan kubety
 		}
 
 	case <-housekeepingCh:
-		if !kl.sourcesReady.AllReady() {
+		if !kl.sourcesReady.AllReady(ctx) {
 			// If the sources aren't ready or volume manager has not yet synced the states,
 			// skip housekeeping, as we may accidentally delete pods from unready sources.
 			klog.V(4).InfoS("SyncLoop (housekeeping, skipped): sources aren't ready yet")

@@ -25,8 +25,8 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func (s *sourceFile) startWatch() {
-	klog.ErrorS(nil, "Watching source file is unsupported in this build")
+func (s *sourceFile) startWatch(logger klog.Logger) {
+	logger.Error(nil, "Watching source file is unsupported in this build")
 }
 
 func (s *sourceFile) consumeWatchEvent(e *watchEvent) error {

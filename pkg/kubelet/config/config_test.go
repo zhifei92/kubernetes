@@ -471,7 +471,7 @@ func TestPodConfigRace(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		for i := 0; i < iterations; i++ {
-			config.SeenAllSources(seenSources)
+			config.SeenAllSources(tCtx, seenSources)
 		}
 	}()
 
