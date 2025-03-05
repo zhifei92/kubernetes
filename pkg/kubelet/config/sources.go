@@ -32,7 +32,7 @@ type SourcesReady interface {
 	// AddSource adds the specified source to the set of sources managed.
 	AddSource(source string)
 	// AllReady returns true if the currently configured sources have all been seen.
-	AllReady(ctx context.Context) bool
+	AllReady() bool
 }
 
 // NewSourcesReady returns a SourcesReady with the specified function.
@@ -61,8 +61,10 @@ func (s *sourcesImpl) AddSource(source string) {
 }
 
 // AllReady returns true if each configured source is ready.
-func (s *sourcesImpl) AllReady(ctx context.Context) bool {
+func (s *sourcesImpl) AllReady() bool {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	return s.sourcesReadyFn(ctx, s.sourcesSeen)
+	// Use context.TODO() because we currently do not have a proper context to pass in.
+	// Replace this with an appropriate context when refactoring this function to accept a context parameter.
+	return s.sourcesReadyFn(context.TODO(), s.sourcesSeen)
 }
